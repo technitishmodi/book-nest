@@ -1,11 +1,26 @@
 import axios from 'axios';
+import { Platform } from 'react-native';
 import { Book, Order } from '../types';
 
-const API_BASE_URL = 'http://localhost:3000/api';
+// Determine the correct API base URL based on platform
+const getApiBaseUrl = () => {
+  if (Platform.OS === 'web') {
+    return 'http://localhost:3000/api';
+  }
+  
+  // For mobile devices, use your computer's IP address
+  // You can get this IP from the Expo CLI output when you run `npm run dev`
+  return 'http://192.168.55.217:3000/api';
+};
+
+const API_BASE_URL = getApiBaseUrl();
+
+console.log('API Base URL:', API_BASE_URL);
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
   timeout: 10000,
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -27,7 +42,10 @@ apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      console.log('Authentication error - token expired or invalid');
+      // Only log auth errors for protected endpoints, not login attempts
+      if (!error.config?.url?.includes('/auth/login')) {
+        console.log('Authentication error - token expired or invalid');
+      }
     }
     return Promise.reject(error);
   }

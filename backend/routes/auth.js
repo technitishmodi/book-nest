@@ -69,10 +69,13 @@ router.post('/register', async (req, res) => {
 // Login user
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;
+  
+  console.log('Login attempt:', { email, hasPassword: !!password, body: req.body });
 
   try {
     // Validate input
     if (!email || !password) {
+      console.log('Login failed: Missing email or password');
       return res.status(400).json({ error: 'Email and password are required' });
     }
 
@@ -82,7 +85,10 @@ router.post('/login', async (req, res) => {
       [email]
     );
 
+    console.log('User query result:', { found: result.rows.length > 0, email });
+
     if (result.rows.length === 0) {
+      console.log('Login failed: User not found');
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
@@ -90,7 +96,10 @@ router.post('/login', async (req, res) => {
 
     // Verify password
     const isValidPassword = await bcrypt.compare(password, user.password_hash);
+    console.log('Password validation:', { isValidPassword, email });
+    
     if (!isValidPassword) {
+      console.log('Login failed: Invalid password');
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
@@ -100,6 +109,8 @@ router.post('/login', async (req, res) => {
       process.env.JWT_SECRET,
       { expiresIn: process.env.JWT_EXPIRES_IN }
     );
+
+    console.log('Login successful:', { email, role: user.role });
 
     res.json({
       message: 'Login successful',

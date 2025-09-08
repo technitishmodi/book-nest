@@ -22,11 +22,13 @@ const limiter = rateLimit({
 });
 app.use(limiter);
 
-// CORS configuration
+// CORS configuration - More permissive for development
 const corsOptions = {
-  origin: process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : ['http://localhost:3000', 'http://localhost:19006'],
+  origin: true, // Allow all origins in development
   credentials: true,
-  optionsSuccessStatus: 200
+  optionsSuccessStatus: 200,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin']
 };
 app.use(cors(corsOptions));
 
@@ -40,6 +42,15 @@ app.get('/health', (req, res) => {
     status: 'OK', 
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV || 'development'
+  });
+});
+
+// CORS test endpoint
+app.get('/test-cors', (req, res) => {
+  res.json({ 
+    message: 'CORS is working!',
+    origin: req.get('Origin'),
+    timestamp: new Date().toISOString()
   });
 });
 
@@ -68,8 +79,9 @@ app.use((error, req, res, next) => {
 });
 
 // Start server
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Bookstore API server running on port ${PORT}`);
   console.log(`📚 Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`🔗 Health check: http://localhost:${PORT}/health`);
+  console.log(`📱 Mobile access: http://192.168.55.217:${PORT}/health`);
 });

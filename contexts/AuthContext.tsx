@@ -55,12 +55,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setToken(storedToken);
         setUser(JSON.parse(storedUser));
         
-        // Verify token is still valid
+        // Verify token is still valid - but only if we have a token
         try {
           const profile = await authAPI.getProfile();
           setUser(profile.user);
         } catch (error) {
           // Token invalid, clear stored data
+          console.log('Stored token invalid, clearing auth data');
           await logout();
         }
       }
