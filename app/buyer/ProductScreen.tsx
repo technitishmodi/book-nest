@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, ScrollView, Image, Dimensions } from 'react-native';
+import { StyleSheet, View, ScrollView, Image, Dimensions, StatusBar, TouchableOpacity } from 'react-native';
 import { Title, Text, Button, Appbar, ActivityIndicator, Snackbar, Card, Chip, Divider } from 'react-native-paper';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useCart } from '../../contexts/CartContext';
@@ -100,18 +101,23 @@ const ProductScreen: React.FC = () => {
         {/* Hero Image Section */}
         <View style={styles.imageContainer}>
           <Image source={{ uri: book.imageUrl }} style={styles.image} />
-          <View style={styles.imageOverlay}>
-            <Chip
-              icon="store"
-              style={[
-                styles.stockChip,
-                { backgroundColor: book.stock > 0 ? '#4CAF50' : '#F44336' }
-              ]}
-              textStyle={{ color: 'white' }}
-            >
-              {book.stock > 0 ? `${book.stock} in stock` : 'Out of stock'}
-            </Chip>
-          </View>
+          <LinearGradient
+            colors={['transparent', 'rgba(0,0,0,0.8)']}
+            style={styles.imageGradient}
+          >
+            <View style={styles.imageOverlay}>
+              <Chip
+                icon="store"
+                style={[
+                  styles.stockChip,
+                  { backgroundColor: book.stock > 0 ? '#4CAF50' : '#F44336' }
+                ]}
+                textStyle={{ color: 'white', fontWeight: '600' }}
+              >
+                {book.stock > 0 ? `${book.stock} in stock` : 'Out of stock'}
+              </Chip>
+            </View>
+          </LinearGradient>
         </View>
         
         {/* Book Information Section */}
@@ -125,8 +131,21 @@ const ProductScreen: React.FC = () => {
           {/* Seller Information */}
           <Card style={styles.sellerCard}>
             <Card.Content style={styles.sellerContent}>
-              <Text style={styles.sellerLabel}>Sold by</Text>
-              <Text style={styles.sellerName}>{book.sellerName}</Text>
+              <View style={styles.sellerRow}>
+                <LinearGradient
+                  colors={['#667eea', '#764ba2']}
+                  style={styles.sellerAvatar}
+                >
+                  <Text style={styles.sellerAvatarText}>
+                    {book.sellerName.charAt(0).toUpperCase()}
+                  </Text>
+                </LinearGradient>
+                <View style={styles.sellerInfo}>
+                  <Text style={styles.sellerLabel}>Sold by</Text>
+                  <Text style={styles.sellerName}>{book.sellerName}</Text>
+                  <Text style={styles.sellerBadge}>⭐ Verified Seller</Text>
+                </View>
+              </View>
             </Card.Content>
           </Card>
 
@@ -178,43 +197,46 @@ const ProductScreen: React.FC = () => {
           
           {/* Action Buttons */}
           <View style={styles.actionSection}>
-            <Button
-              mode="contained"
-              onPress={handleBuyNow}
-              style={[
-                styles.buyNowButton,
-                { backgroundColor: book.stock > 0 ? '#FF5722' : '#BDBDBD' }
-              ]}
-              disabled={book.stock === 0}
-              contentStyle={styles.buttonContent}
-              icon="flash"
-            >
-              {book.stock > 0 ? 'Buy Now' : 'Out of Stock'}
-            </Button>
+            <View style={styles.primaryActions}>
+              <TouchableOpacity
+                onPress={handleBuyNow}
+                disabled={book.stock === 0}
+                style={[
+                  styles.buyNowButton,
+                  { opacity: book.stock > 0 ? 1 : 0.5 }
+                ]}
+              >
+                <LinearGradient
+                  colors={book.stock > 0 ? ['#FF6B6B', '#FF5722'] : ['#BDBDBD', '#9E9E9E']}
+                  style={styles.buyNowGradient}
+                >
+                  <Text style={styles.buyNowText}>⚡ {book.stock > 0 ? 'Buy Now' : 'Out of Stock'}</Text>
+                </LinearGradient>
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                onPress={handleAddToCart}
+                disabled={book.stock === 0}
+                style={[
+                  styles.addToCartButton,
+                  { opacity: book.stock > 0 ? 1 : 0.5 }
+                ]}
+              >
+                <LinearGradient
+                  colors={book.stock > 0 ? ['#667eea', '#764ba2'] : ['#BDBDBD', '#9E9E9E']}
+                  style={styles.addToCartGradient}
+                >
+                  <Text style={styles.addToCartText}>🛒 Add to Cart</Text>
+                </LinearGradient>
+              </TouchableOpacity>
+            </View>
             
-            <Button
-              mode="outlined"
-              onPress={handleAddToCart}
-              style={[
-                styles.addButton,
-                { borderColor: book.stock > 0 ? '#2196F3' : '#BDBDBD' }
-              ]}
-              disabled={book.stock === 0}
-              contentStyle={styles.buttonContent}
-              icon="cart-plus"
-            >
-              {book.stock > 0 ? 'Add to Cart' : 'Out of Stock'}
-            </Button>
-            
-            <Button
-              mode="text"
+            <TouchableOpacity
               onPress={() => navigation.navigate('Cart')}
               style={styles.viewCartButton}
-              contentStyle={styles.buttonContent}
-              icon="cart"
             >
-              View Cart
-            </Button>
+              <Text style={styles.viewCartText}>👀 View Cart</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </ScrollView>
@@ -280,12 +302,23 @@ const styles = StyleSheet.create({
   imageContainer: {
     position: 'relative',
     width: '100%',
-    height: 350,
+    height: 400,
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30,
+    overflow: 'hidden',
   },
   image: {
     width: '100%',
     height: '100%',
     resizeMode: 'cover',
+  },
+  imageGradient: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 120,
+    justifyContent: 'flex-end',
   },
   imageOverlay: {
     position: 'absolute',
@@ -294,15 +327,16 @@ const styles = StyleSheet.create({
   },
   stockChip: {
     borderRadius: 20,
+    elevation: 4,
   },
   details: {
     flex: 1,
     backgroundColor: '#FFF',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    marginTop: -24,
-    paddingTop: 24,
-    paddingHorizontal: 20,
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+    marginTop: -30,
+    paddingTop: 30,
+    paddingHorizontal: 24,
     paddingBottom: 100,
   },
   titleSection: {
@@ -325,14 +359,41 @@ const styles = StyleSheet.create({
     color: '#2196F3',
   },
   sellerCard: {
-    backgroundColor: '#F8F9FA',
-    marginBottom: 16,
-    elevation: 1,
-    borderRadius: 12,
+    backgroundColor: '#FFFFFF',
+    marginBottom: 20,
+    elevation: 3,
+    borderRadius: 16,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
   },
   sellerContent: {
-    paddingVertical: 12,
-    paddingHorizontal: 16,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+  },
+  sellerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  sellerAvatar: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  sellerAvatarText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+  },
+  sellerInfo: {
+    flex: 1,
   },
   sellerLabel: {
     fontSize: 12,
@@ -342,9 +403,15 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   sellerName: {
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 18,
+    fontWeight: '700',
     color: '#1A1A1A',
+    marginBottom: 4,
+  },
+  sellerBadge: {
+    fontSize: 12,
+    color: '#4CAF50',
+    fontWeight: '600',
   },
   divider: {
     marginVertical: 20,
@@ -390,24 +457,53 @@ const styles = StyleSheet.create({
     marginLeft: 16,
   },
   actionSection: {
+    marginTop: 8,
+  },
+  primaryActions: {
+    flexDirection: 'row',
     gap: 12,
+    marginBottom: 16,
   },
   buyNowButton: {
-    paddingVertical: 8,
-    borderRadius: 12,
-    elevation: 2,
+    flex: 1,
+    borderRadius: 25,
+    overflow: 'hidden',
+    elevation: 4,
   },
-  addButton: {
-    paddingVertical: 8,
-    borderRadius: 12,
-    borderWidth: 2,
+  buyNowGradient: {
+    paddingVertical: 16,
+    alignItems: 'center',
+  },
+  buyNowText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  addToCartButton: {
+    flex: 1,
+    borderRadius: 25,
+    overflow: 'hidden',
+    elevation: 4,
+  },
+  addToCartGradient: {
+    paddingVertical: 16,
+    alignItems: 'center',
+  },
+  addToCartText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
   viewCartButton: {
-    paddingVertical: 8,
-    borderRadius: 12,
+    paddingVertical: 12,
+    alignItems: 'center',
+    backgroundColor: '#F8F9FA',
+    borderRadius: 20,
   },
-  buttonContent: {
-    paddingVertical: 8,
+  viewCartText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#667eea',
   },
 });
 

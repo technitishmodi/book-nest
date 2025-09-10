@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { StyleSheet, View, FlatList } from 'react-native';
+import { StyleSheet, View, FlatList, TouchableOpacity } from 'react-native';
 import { Title, Text, Button, Appbar, Snackbar, Divider } from 'react-native-paper';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import CartItem from '../../components/CartItem';
@@ -51,18 +52,28 @@ const CartScreen: React.FC = () => {
 
   const renderEmptyCart = () => (
     <View style={styles.emptyContainer}>
-      <Text style={styles.emptyText}>Your cart is empty</Text>
-      <Button mode="contained" onPress={() => navigation.navigate('Storefront')}>
-        Start Shopping
-      </Button>
+      <Text style={styles.emptyIcon}>🛒</Text>
+      <Text style={styles.emptyTitle}>Your cart is empty</Text>
+      <Text style={styles.emptySubtitle}>Add some books to get started!</Text>
+      <TouchableOpacity 
+        onPress={() => navigation.navigate('Storefront')}
+        style={styles.shopButton}
+      >
+        <LinearGradient
+          colors={['#667eea', '#764ba2']}
+          style={styles.shopButtonGradient}
+        >
+          <Text style={styles.shopButtonText}>🛍️ Start Shopping</Text>
+        </LinearGradient>
+      </TouchableOpacity>
     </View>
   );
 
   return (
     <View style={styles.container}>
-      <Appbar.Header>
+      <Appbar.Header style={styles.header}>
         <Appbar.BackAction onPress={navigation.goBack} />
-        <Appbar.Content title="Shopping Cart" />
+        <Appbar.Content title="🛒 Shopping Cart" titleStyle={styles.headerTitle} />
       </Appbar.Header>
 
       {cart.length === 0 ? (
@@ -77,22 +88,42 @@ const CartScreen: React.FC = () => {
           />
           
           <View style={styles.totalContainer}>
-            <Divider style={styles.divider} />
-            <View style={styles.totalRow}>
-              <Title style={styles.totalLabel}>Total:</Title>
-              <Title style={styles.totalPrice}>${getTotalPrice().toFixed(2)}</Title>
-            </View>
-            
-            <Button
-              mode="contained"
-              onPress={handleCheckout}
-              loading={loading}
-              disabled={loading || cart.length === 0}
-              style={styles.checkoutButton}
-              contentStyle={styles.buttonContent}
+            <LinearGradient
+              colors={['#F8F9FA', '#FFFFFF']}
+              style={styles.totalGradient}
             >
-              {loading ? 'Processing...' : 'Checkout'}
-            </Button>
+              <View style={styles.summaryRow}>
+                <Text style={styles.summaryLabel}>Items ({cart.length})</Text>
+                <Text style={styles.summaryValue}>${getTotalPrice().toFixed(2)}</Text>
+              </View>
+              <View style={styles.summaryRow}>
+                <Text style={styles.summaryLabel}>Delivery</Text>
+                <Text style={styles.summaryValue}>Free</Text>
+              </View>
+              <Divider style={styles.divider} />
+              <View style={styles.totalRow}>
+                <Text style={styles.totalLabel}>Total</Text>
+                <Text style={styles.totalPrice}>${getTotalPrice().toFixed(2)}</Text>
+              </View>
+              
+              <TouchableOpacity
+                onPress={handleCheckout}
+                disabled={loading || cart.length === 0}
+                style={[
+                  styles.checkoutButton,
+                  { opacity: (loading || cart.length === 0) ? 0.6 : 1 }
+                ]}
+              >
+                <LinearGradient
+                  colors={['#667eea', '#764ba2']}
+                  style={styles.checkoutGradient}
+                >
+                  <Text style={styles.checkoutText}>
+                    {loading ? '⏳ Processing...' : '💳 Proceed to Checkout'}
+                  </Text>
+                </LinearGradient>
+              </TouchableOpacity>
+            </LinearGradient>
           </View>
         </>
       )}
@@ -111,47 +142,113 @@ const CartScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#F8F9FA',
   },
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
+    padding: 40,
   },
-  emptyText: {
-    fontSize: 18,
-    color: '#666',
+  emptyIcon: {
+    fontSize: 80,
     marginBottom: 20,
   },
+  emptyTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#1A1A1A',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  emptySubtitle: {
+    fontSize: 16,
+    color: '#666666',
+    marginBottom: 32,
+    textAlign: 'center',
+    lineHeight: 22,
+  },
+  shopButton: {
+    borderRadius: 25,
+    overflow: 'hidden',
+    elevation: 4,
+  },
+  shopButtonGradient: {
+    paddingHorizontal: 32,
+    paddingVertical: 16,
+  },
+  shopButtonText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    textAlign: 'center',
+  },
   totalContainer: {
-    backgroundColor: '#FFF',
-    paddingHorizontal: 16,
-    paddingTop: 16,
+    backgroundColor: 'transparent',
+  },
+  totalGradient: {
+    paddingHorizontal: 20,
+    paddingTop: 20,
     paddingBottom: 32,
+    borderTopLeftRadius: 25,
+    borderTopRightRadius: 25,
+  },
+  summaryRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 8,
+  },
+  summaryLabel: {
+    fontSize: 16,
+    color: '#666666',
+  },
+  summaryValue: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1A1A1A',
   },
   divider: {
-    marginBottom: 16,
+    marginVertical: 16,
+    backgroundColor: '#E0E0E0',
   },
   totalRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 24,
   },
   totalLabel: {
     fontSize: 20,
+    fontWeight: '700',
+    color: '#1A1A1A',
   },
   totalPrice: {
-    fontSize: 24,
-    color: '#2196F3',
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#667eea',
   },
   checkoutButton: {
-    paddingVertical: 8,
-    borderRadius: 12,
+    borderRadius: 25,
+    overflow: 'hidden',
+    elevation: 6,
   },
-  buttonContent: {
-    paddingVertical: 8,
+  checkoutGradient: {
+    paddingVertical: 18,
+    alignItems: 'center',
+  },
+  checkoutText: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  header: {
+    backgroundColor: '#667eea',
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
 });
 

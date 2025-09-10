@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, ScrollView, FlatList, Alert } from 'react-native';
+import { StyleSheet, View, ScrollView, FlatList, Alert, TouchableOpacity, Image } from 'react-native';
 import { Title, Text, TextInput, Button, Appbar, Card, ActivityIndicator, Snackbar } from 'react-native-paper';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useAuth } from '../../contexts/AuthContext';
@@ -102,30 +103,55 @@ const BookListingScreen: React.FC = () => {
   };
 
   const renderBook = ({ item }: { item: Book }) => (
-    <Card style={styles.bookCard}>
-      <Card.Content>
-        <Title numberOfLines={2}>{item.title}</Title>
-        <Text style={styles.price}>${parseFloat(item.price).toFixed(2)}</Text>
-        <Text>Stock: {item.stock}</Text>
-        <Text numberOfLines={2} style={styles.description}>{item.description}</Text>
-      </Card.Content>
+    <Card style={styles.bookCard} elevation={3}>
+      <View style={styles.bookContainer}>
+        <View style={styles.bookImageContainer}>
+          <Image source={{ uri: item.imageUrl }} style={styles.bookImage} />
+        </View>
+        <View style={styles.bookContent}>
+          <Title numberOfLines={2} style={styles.bookTitle}>{item.title}</Title>
+          <Text style={styles.price}>${parseFloat(item.price).toFixed(2)}</Text>
+          <View style={styles.stockRow}>
+            <Text style={styles.stockLabel}>Stock:</Text>
+            <View style={[
+              styles.stockBadge,
+              { backgroundColor: item.stock > 0 ? '#E8F5E8' : '#FFEBEE' }
+            ]}>
+              <Text style={[
+                styles.stockText,
+                { color: item.stock > 0 ? '#2E7D32' : '#C62828' }
+              ]}>
+                {item.stock} {item.stock === 1 ? 'copy' : 'copies'}
+              </Text>
+            </View>
+          </View>
+          <Text numberOfLines={2} style={styles.description}>{item.description}</Text>
+        </View>
+      </View>
     </Card>
   );
 
   return (
     <View style={styles.container}>
-      <Appbar.Header>
-        <Appbar.Content title="My Books" />
-        <Appbar.Action
-          icon="chart-line"
-          onPress={() => navigation.navigate('SalesDashboard')}
-        />
-        <Appbar.Action
-          icon="clipboard-list"
-          onPress={() => navigation.navigate('OrderManagement')}
-        />
-        <Appbar.Action icon="logout" onPress={handleLogout} />
-      </Appbar.Header>
+      <LinearGradient
+        colors={['#667eea', '#764ba2']}
+        style={styles.headerGradient}
+      >
+        <Appbar.Header style={styles.transparentHeader}>
+          <Appbar.Content title="📚 My Books" titleStyle={styles.headerTitle} />
+          <Appbar.Action
+            icon="chart-line"
+            iconColor="#FFFFFF"
+            onPress={() => navigation.navigate('SalesDashboard')}
+          />
+          <Appbar.Action
+            icon="clipboard-list"
+            iconColor="#FFFFFF"
+            onPress={() => navigation.navigate('OrderManagement')}
+          />
+          <Appbar.Action icon="logout" iconColor="#FFFFFF" onPress={handleLogout} />
+        </Appbar.Header>
+      </LinearGradient>
 
       {showForm ? (
         <ScrollView style={styles.form}>
@@ -180,22 +206,29 @@ const BookListingScreen: React.FC = () => {
               />
               
               <View style={styles.buttonRow}>
-                <Button
-                  mode="outlined"
+                <TouchableOpacity
                   onPress={() => setShowForm(false)}
                   style={styles.cancelButton}
                 >
-                  Cancel
-                </Button>
-                <Button
-                  mode="contained"
+                  <Text style={styles.cancelButtonText}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
                   onPress={handleSubmit}
-                  loading={submitting}
                   disabled={submitting}
-                  style={styles.submitButton}
+                  style={[
+                    styles.submitButton,
+                    { opacity: submitting ? 0.7 : 1 }
+                  ]}
                 >
-                  Add Book
-                </Button>
+                  <LinearGradient
+                    colors={['#667eea', '#764ba2']}
+                    style={styles.submitButtonGradient}
+                  >
+                    <Text style={styles.submitButtonText}>
+                      {submitting ? '⏳ Adding...' : '✨ Add Book'}
+                    </Text>
+                  </LinearGradient>
+                </TouchableOpacity>
               </View>
             </Card.Content>
           </Card>
@@ -203,15 +236,21 @@ const BookListingScreen: React.FC = () => {
       ) : (
         <View style={styles.listContainer}>
           <View style={styles.header}>
-            <Title>Your Books ({books.length})</Title>
-            <Button
-              mode="contained"
+            <View style={styles.statsCard}>
+              <Text style={styles.statsNumber}>{books.length}</Text>
+              <Text style={styles.statsLabel}>Books Listed</Text>
+            </View>
+            <TouchableOpacity
               onPress={() => setShowForm(true)}
-              icon="plus"
               style={styles.addButton}
             >
-              Add Book
-            </Button>
+              <LinearGradient
+                colors={['#667eea', '#764ba2']}
+                style={styles.addButtonGradient}
+              >
+                <Text style={styles.addButtonText}>+ Add Book</Text>
+              </LinearGradient>
+            </TouchableOpacity>
           </View>
 
           {loading ? (
@@ -249,41 +288,108 @@ const BookListingScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#F8F9FA',
+  },
+  headerGradient: {
+    paddingTop: 0,
+  },
+  transparentHeader: {
+    backgroundColor: 'transparent',
+    elevation: 0,
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
   form: {
     flex: 1,
-    padding: 16,
+    padding: 20,
   },
   formCard: {
-    elevation: 4,
+    elevation: 6,
+    borderRadius: 20,
+    backgroundColor: '#FFFFFF',
   },
   input: {
-    marginBottom: 16,
+    marginBottom: 20,
+    backgroundColor: '#F8F9FA',
   },
   buttonRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 16,
+    marginTop: 24,
+    gap: 12,
   },
   cancelButton: {
     flex: 0.45,
+    paddingVertical: 14,
+    borderRadius: 25,
+    backgroundColor: '#F0F0F0',
+    alignItems: 'center',
+  },
+  cancelButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#666666',
   },
   submitButton: {
     flex: 0.45,
+    borderRadius: 25,
+    overflow: 'hidden',
+  },
+  submitButtonGradient: {
+    paddingVertical: 14,
+    alignItems: 'center',
+  },
+  submitButtonText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
   listContainer: {
     flex: 1,
-    padding: 16,
+    padding: 20,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 20,
+  },
+  statsCard: {
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderRadius: 16,
+    elevation: 2,
+    alignItems: 'center',
+  },
+  statsNumber: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#667eea',
+  },
+  statsLabel: {
+    fontSize: 12,
+    color: '#666666',
+    marginTop: 4,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   addButton: {
-    borderRadius: 8,
+    borderRadius: 25,
+    overflow: 'hidden',
+    elevation: 4,
+  },
+  addButtonGradient: {
+    paddingHorizontal: 24,
+    paddingVertical: 14,
+  },
+  addButtonText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
   loadingContainer: {
     flex: 1,
@@ -299,29 +405,86 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    paddingHorizontal: 40,
   },
   emptyText: {
-    fontSize: 18,
-    color: '#666',
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#1A1A1A',
     marginBottom: 8,
+    textAlign: 'center',
   },
   emptySubtext: {
-    fontSize: 14,
-    color: '#999',
+    fontSize: 16,
+    color: '#666666',
+    textAlign: 'center',
+    lineHeight: 22,
   },
   bookCard: {
-    marginBottom: 12,
-    elevation: 2,
+    marginBottom: 16,
+    borderRadius: 16,
+    backgroundColor: '#FFFFFF',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+  },
+  bookContainer: {
+    flexDirection: 'row',
+    padding: 16,
+  },
+  bookImageContainer: {
+    borderRadius: 12,
+    overflow: 'hidden',
+    marginRight: 16,
+  },
+  bookImage: {
+    width: 80,
+    height: 100,
+    resizeMode: 'cover',
+  },
+  bookContent: {
+    flex: 1,
+  },
+  bookTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#1A1A1A',
+    marginBottom: 8,
+    lineHeight: 24,
   },
   price: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
-    color: '#2196F3',
-    marginVertical: 4,
+    color: '#667eea',
+    marginBottom: 8,
+  },
+  stockRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  stockLabel: {
+    fontSize: 14,
+    color: '#666666',
+    marginRight: 8,
+  },
+  stockBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  stockText: {
+    fontSize: 12,
+    fontWeight: '600',
   },
   description: {
-    color: '#666',
-    marginTop: 8,
+    fontSize: 14,
+    color: '#666666',
+    lineHeight: 20,
   },
 });
 
