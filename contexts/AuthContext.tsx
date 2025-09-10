@@ -75,7 +75,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const login = async (email: string, password: string): Promise<void> => {
     try {
       setLoading(true);
+      console.log('AuthContext.login: Starting login process for:', email);
+      
       const response = await authAPI.login(email, password);
+      console.log('AuthContext.login: Login API response received:', response);
       
       setUser(response.user);
       setToken(response.token);
@@ -83,8 +86,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Store in AsyncStorage
       await AsyncStorage.setItem('authToken', response.token);
       await AsyncStorage.setItem('userData', JSON.stringify(response.user));
+      
+      console.log('AuthContext.login: User and token set, auth data stored:', response.user);
     } catch (error) {
-      console.error('Login error:', error);
+      console.error('AuthContext.login: Login error:', error);
       throw error;
     } finally {
       setLoading(false);
@@ -112,14 +117,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const logout = async (): Promise<void> => {
     try {
+      console.log('AuthContext.logout: Starting logout process');
+      
       setUser(null);
       setToken(null);
       
       // Clear AsyncStorage
       await AsyncStorage.removeItem('authToken');
       await AsyncStorage.removeItem('userData');
+      
+      console.log('AuthContext.logout: Logout completed, user and token cleared');
     } catch (error) {
-      console.error('Logout error:', error);
+      console.error('AuthContext.logout: Logout error:', error);
     }
   };
 

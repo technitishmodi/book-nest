@@ -79,13 +79,21 @@ export const booksAPI = {
   },
 
   getById: async (bookId: string): Promise<Book | null> => {
-    console.log('booksAPI.getById: called with bookId:', bookId);
+    console.log('booksAPI.getById: called with bookId:', bookId, 'type:', typeof bookId);
     try {
-      const response = await apiClient.get(`/books/${bookId}`);
+      const url = `/books/${bookId}`;
+      console.log('booksAPI.getById: making request to:', url);
+      const response = await apiClient.get(url);
+      console.log('booksAPI.getById: response status:', response.status);
       console.log('booksAPI.getById: returning book:', response.data);
       return response.data;
-    } catch (error) {
-      console.error('booksAPI.getById: error:', error);
+    } catch (error: any) {
+      console.error('booksAPI.getById: error details:', {
+        message: error.message,
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data
+      });
       return null;
     }
   },

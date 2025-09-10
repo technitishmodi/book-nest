@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, ScrollView, Alert } from 'react-native';
 import { Title, Button, Card, Text, TextInput, SegmentedButtons } from 'react-native-paper';
 import { useAuth } from '../contexts/AuthContext';
+import { useRouter } from 'expo-router';
 
 const AuthScreen: React.FC = () => {
-  const { login, register, loading } = useAuth();
+  const { login, register, loading, isAuthenticated, user } = useAuth();
+  const router = useRouter();
   const [isLogin, setIsLogin] = useState(true);
   const [role, setRole] = useState<'buyer' | 'seller'>('buyer');
   const [formData, setFormData] = useState({
@@ -13,6 +15,14 @@ const AuthScreen: React.FC = () => {
     password: '',
   });
 
+  // Navigate after successful login
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      console.log('Auth successful, navigating to main with user:', user);
+      router.replace('/main');
+    }
+  }, [isAuthenticated, user, router]);
+
   const handleSubmit = async () => {
     try {
       if (!formData.email || !formData.password || (!isLogin && !formData.name)) {
@@ -20,12 +30,17 @@ const AuthScreen: React.FC = () => {
         return;
       }
 
+      console.log('Attempting authentication...', { isLogin, email: formData.email });
+
       if (isLogin) {
         await login(formData.email, formData.password);
+        console.log('Login completed, should navigate now');
       } else {
         await register(formData.name, formData.email, formData.password, role);
+        console.log('Registration completed, should navigate now');
       }
     } catch (error: any) {
+      console.error('Authentication error:', error);
       Alert.alert(
         'Error', 
         error.response?.data?.error || error.message || 'An error occurred'

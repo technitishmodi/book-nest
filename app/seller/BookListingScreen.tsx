@@ -26,6 +26,17 @@ const BookListingScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
   const { user, logout } = useAuth();
 
+  const handleLogout = async () => {
+    try {
+      console.log('BookListingScreen: Logout button pressed');
+      await logout();
+      console.log('BookListingScreen: Logout completed');
+    } catch (error) {
+      console.error('BookListingScreen: Logout error:', error);
+      Alert.alert('Error', 'Failed to logout. Please try again.');
+    }
+  };
+
   useEffect(() => {
     if (user) {
       loadBooks();
@@ -113,7 +124,7 @@ const BookListingScreen: React.FC = () => {
           icon="clipboard-list"
           onPress={() => navigation.navigate('OrderManagement')}
         />
-        <Appbar.Action icon="logout" onPress={logout} />
+        <Appbar.Action icon="logout" onPress={handleLogout} />
       </Appbar.Header>
 
       {showForm ? (

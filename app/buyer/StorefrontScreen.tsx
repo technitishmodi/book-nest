@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, FlatList, View } from 'react-native';
+import { StyleSheet, FlatList, View, Alert, RefreshControl } from 'react-native';
 import { Appbar, Badge, ActivityIndicator, Text } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -14,9 +14,21 @@ type NavigationProp = NativeStackNavigationProp<BuyerStackParamList, 'Storefront
 const StorefrontScreen: React.FC = () => {
   const [books, setBooks] = useState<Book[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const navigation = useNavigation<NavigationProp>();
   const { getTotalItems } = useCart();
   const { logout } = useAuth();
+
+  const handleLogout = async () => {
+    try {
+      console.log('StorefrontScreen: Logout button pressed');
+      await logout();
+      console.log('StorefrontScreen: Logout completed');
+    } catch (error) {
+      console.error('StorefrontScreen: Logout error:', error);
+      Alert.alert('Error', 'Failed to logout. Please try again.');
+    }
+  };
 
   useEffect(() => {
     let isMounted = true;
@@ -52,9 +64,23 @@ const StorefrontScreen: React.FC = () => {
     };
   }, []);
 
-  const loadBooks = async () => {
+  // Add focus listener to refresh books when screen comes into focus
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      console.log('StorefrontScreen: Screen focused, refreshing books...');
+      loadBooks();
+    });
+
+    return unsubscribe;
+  }, [navigation]);
+
+  const loadBooks = async (isRefresh = false) => {
     try {
-      setLoading(true);
+      if (isRefresh) {
+        setRefreshing(true);
+      } else {
+        setLoading(true);
+      }
       console.log('StorefrontScreen: Starting to load books...');
       const fetchedBooks = await booksAPI.getAll();
       console.log('StorefrontScreen: Fetched books:', fetchedBooks);
@@ -63,11 +89,20 @@ const StorefrontScreen: React.FC = () => {
     } catch (error) {
       console.error('Error loading books:', error);
     } finally {
-      setLoading(false);
+      if (isRefresh) {
+        setRefreshing(false);
+      } else {
+        setLoading(false);
+      }
     }
   };
 
+  const onRefresh = () => {
+    loadBooks(true);
+  };
+
   const handleBookPress = (bookId: string) => {
+    console.log('StorefrontScreen: Navigating to book with ID:', bookId, 'type:', typeof bookId);
     navigation.navigate('Product', { bookId });
   };
 
@@ -103,7 +138,7 @@ const StorefrontScreen: React.FC = () => {
           icon="clipboard-list" 
           onPress={() => navigation.navigate('Orders')} 
         />
-        <Appbar.Action icon="logout" onPress={logout} />
+        <Appbar.Action icon="logout" onPress={handleLogout} />
       </Appbar.Header>
       
       <FlatList
@@ -113,6 +148,14 @@ const StorefrontScreen: React.FC = () => {
         numColumns={2}
         contentContainerStyle={styles.listContainer}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={['#2196F3']}
+            tintColor="#2196F3"
+          />
+        }
       />
     </View>
   );
