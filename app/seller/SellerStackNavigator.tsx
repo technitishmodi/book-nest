@@ -9,21 +9,18 @@ const Stack = createNativeStackNavigator<SellerStackParamList>();
 
 const SellerStackNavigator: React.FC = () => {
   return (
-    <Stack.Navigator>
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen
         name="BookListing"
         component={BookListingScreen}
-        options={{ title: 'My Books' }}
       />
       <Stack.Screen
         name="SalesDashboard"
         component={SalesDashboardScreen}
-        options={{ title: 'Sales Dashboard' }}
       />
       <Stack.Screen
         name="OrderManagement"
         component={OrderManagementScreen}
-        options={{ title: 'Order Management' }}
       />
     </Stack.Navigator>
   );

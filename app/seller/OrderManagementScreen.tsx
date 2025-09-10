@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, FlatList } from 'react-native';
+import { StyleSheet, View, FlatList, ScrollView } from 'react-native';
 import { Title, Text, Appbar, ActivityIndicator, SegmentedButtons } from 'react-native-paper';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import OrderItem from '../../components/OrderItem';
@@ -69,10 +70,15 @@ const OrderManagementScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <Appbar.Header>
-        <Appbar.BackAction onPress={navigation.goBack} />
-        <Appbar.Content title="Order Management" />
-      </Appbar.Header>
+      <LinearGradient
+        colors={['#667eea', '#764ba2']}
+        style={styles.headerGradient}
+      >
+        <Appbar.Header style={styles.transparentHeader}>
+          <Appbar.BackAction onPress={navigation.goBack} iconColor="#FFFFFF" />
+          <Appbar.Content title="📋 Order Management" titleStyle={styles.headerTitle} />
+        </Appbar.Header>
+      </LinearGradient>
 
       <View style={styles.content}>
         <View style={styles.filterContainer}>
@@ -84,16 +90,18 @@ const OrderManagementScreen: React.FC = () => {
               { value: 'pending', label: `Pending (${orders.filter(o => o.status === 'pending').length})` },
               { value: 'shipped', label: `Shipped (${orders.filter(o => o.status === 'shipped').length})` },
             ]}
+            style={styles.segmentedButtons}
           />
         </View>
 
         {loading ? (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#2196F3" />
+            <ActivityIndicator size="large" color="#667eea" />
             <Text style={styles.loadingText}>Loading orders...</Text>
           </View>
         ) : filteredOrders.length === 0 ? (
           <View style={styles.emptyContainer}>
+            <Text style={styles.emptyIcon}>📦</Text>
             <Text style={styles.emptyText}>
               {filter === 'all' 
                 ? 'No orders yet' 
@@ -106,12 +114,19 @@ const OrderManagementScreen: React.FC = () => {
             </Text>
           </View>
         ) : (
-          <FlatList
-            data={filteredOrders}
-            renderItem={renderOrder}
-            keyExtractor={(item) => item.id}
+          <ScrollView 
+            style={styles.ordersList}
             showsVerticalScrollIndicator={false}
-          />
+          >
+            {filteredOrders.map((order) => (
+              <OrderItem
+                key={order.id}
+                order={order}
+                onUpdateStatus={(status) => handleUpdateOrderStatus(order.id, status)}
+                showActions={order.status === 'pending'}
+              />
+            ))}
+          </ScrollView>
         )}
       </View>
     </View>
@@ -121,15 +136,36 @@ const OrderManagementScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#F8F9FA',
+  },
+  headerGradient: {
+    paddingTop: 0,
+  },
+  transparentHeader: {
+    backgroundColor: 'transparent',
+    elevation: 0,
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
   content: {
     flex: 1,
   },
   filterContainer: {
-    padding: 16,
-    backgroundColor: '#FFF',
+    padding: 20,
+    backgroundColor: '#FFFFFF',
     elevation: 2,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E0E0E0',
+  },
+  segmentedButtons: {
+    backgroundColor: '#F8F9FA',
+  },
+  ordersList: {
+    flex: 1,
+    paddingHorizontal: 16,
   },
   loadingContainer: {
     flex: 1,
@@ -139,25 +175,30 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 16,
     fontSize: 16,
-    color: '#666',
+    color: '#666666',
   },
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 32,
+    paddingHorizontal: 40,
+  },
+  emptyIcon: {
+    fontSize: 64,
+    marginBottom: 16,
   },
   emptyText: {
-    fontSize: 18,
-    color: '#666',
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#1A1A1A',
     marginBottom: 8,
     textAlign: 'center',
   },
   emptySubtext: {
-    fontSize: 14,
-    color: '#999',
+    fontSize: 16,
+    color: '#666666',
     textAlign: 'center',
-    lineHeight: 20,
+    lineHeight: 22,
   },
 });
 

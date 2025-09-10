@@ -52,11 +52,34 @@ export type TabParamList = {
   SellerTab: undefined;
 };
 
+export interface WishlistItem {
+  id: string;
+  userId: string;
+  bookId: string;
+  book: Book;
+  addedAt: string;
+  priceWhenAdded: number;
+  notifyOnPriceDrop: boolean;
+}
+
+export interface WishlistShare {
+  id: string;
+  userId: string;
+  shareCode: string;
+  title: string;
+  description?: string;
+  isPublic: boolean;
+  createdAt: string;
+  expiresAt?: string;
+}
+
 export type BuyerStackParamList = {
   Storefront: undefined;
   Product: { bookId: string };
   Cart: undefined;
   Orders: undefined;
+  Wishlist: undefined;
+  SharedWishlist: { shareCode: string };
 };
 
 export type SellerStackParamList = {

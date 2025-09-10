@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { Platform } from 'react-native';
-import { Book, Order } from '../types';
+import { Book, Order, WishlistItem, WishlistShare } from '../types';
 
 // Determine the correct API base URL based on platform
 const getApiBaseUrl = () => {
@@ -219,6 +219,115 @@ export const authAPI = {
       return response.data;
     } catch (error) {
       console.error('authAPI.getProfile: error:', error);
+      throw error;
+    }
+  },
+};
+
+// Wishlist API
+export const wishlistAPI = {
+  getWishlist: async (): Promise<WishlistItem[]> => {
+    console.log('wishlistAPI.getWishlist: called');
+    try {
+      const response = await apiClient.get('/wishlist');
+      console.log('wishlistAPI.getWishlist: returning items:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('wishlistAPI.getWishlist: error:', error);
+      return [];
+    }
+  },
+
+  addToWishlist: async (bookId: string, notifyOnPriceDrop = false): Promise<any> => {
+    console.log('wishlistAPI.addToWishlist: called with bookId:', bookId);
+    try {
+      const response = await apiClient.post('/wishlist', { bookId, notifyOnPriceDrop });
+      console.log('wishlistAPI.addToWishlist: returning response:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('wishlistAPI.addToWishlist: error:', error);
+      throw error;
+    }
+  },
+
+  removeFromWishlist: async (bookId: string): Promise<void> => {
+    console.log('wishlistAPI.removeFromWishlist: called with bookId:', bookId);
+    try {
+      await apiClient.delete(`/wishlist/${bookId}`);
+      console.log('wishlistAPI.removeFromWishlist: book removed successfully');
+    } catch (error) {
+      console.error('wishlistAPI.removeFromWishlist: error:', error);
+      throw error;
+    }
+  },
+
+  checkInWishlist: async (bookId: string): Promise<boolean> => {
+    console.log('wishlistAPI.checkInWishlist: called with bookId:', bookId);
+    try {
+      const response = await apiClient.get(`/wishlist/check/${bookId}`);
+      console.log('wishlistAPI.checkInWishlist: returning:', response.data.inWishlist);
+      return response.data.inWishlist;
+    } catch (error) {
+      console.error('wishlistAPI.checkInWishlist: error:', error);
+      return false;
+    }
+  },
+
+  updatePriceNotification: async (bookId: string, notifyOnPriceDrop: boolean): Promise<any> => {
+    console.log('wishlistAPI.updatePriceNotification: called with bookId:', bookId, 'notify:', notifyOnPriceDrop);
+    try {
+      const response = await apiClient.patch(`/wishlist/${bookId}/notify`, { notifyOnPriceDrop });
+      console.log('wishlistAPI.updatePriceNotification: returning response:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('wishlistAPI.updatePriceNotification: error:', error);
+      throw error;
+    }
+  },
+
+  createWishlistShare: async (title: string, description?: string, isPublic = true): Promise<any> => {
+    console.log('wishlistAPI.createWishlistShare: called with title:', title);
+    try {
+      const response = await apiClient.post('/wishlist/share', { title, description, isPublic });
+      console.log('wishlistAPI.createWishlistShare: returning response:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('wishlistAPI.createWishlistShare: error:', error);
+      throw error;
+    }
+  },
+
+  getSharedWishlist: async (shareCode: string): Promise<any> => {
+    console.log('wishlistAPI.getSharedWishlist: called with shareCode:', shareCode);
+    try {
+      const response = await apiClient.get(`/wishlist/shared/${shareCode}`);
+      console.log('wishlistAPI.getSharedWishlist: returning response:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('wishlistAPI.getSharedWishlist: error:', error);
+      throw error;
+    }
+  },
+
+  getWishlistShares: async (): Promise<WishlistShare[]> => {
+    console.log('wishlistAPI.getWishlistShares: called');
+    try {
+      const response = await apiClient.get('/wishlist/shares');
+      console.log('wishlistAPI.getWishlistShares: returning shares:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('wishlistAPI.getWishlistShares: error:', error);
+      return [];
+    }
+  },
+
+  deleteWishlistShare: async (shareCode: string): Promise<void> => {
+    console.log('wishlistAPI.deleteWishlistShare: called with shareCode:', shareCode);
+    try {
+      await apiClient.delete(`/wishlist/shares/${shareCode}`);
+      console.log('wishlistAPI.deleteWishlistShare: share deleted successfully');
+    } catch (error) {
+      console.error('wishlistAPI.deleteWishlistShare: error:', error);
       throw error;
     }
   },

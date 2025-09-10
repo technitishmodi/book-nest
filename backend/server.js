@@ -7,6 +7,7 @@ require('dotenv').config();
 const authRoutes = require('./routes/auth');
 const booksRoutes = require('./routes/books');
 const ordersRoutes = require('./routes/orders');
+const wishlistRoutes = require('./routes/wishlist');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -71,6 +72,7 @@ app.get('/test-cors', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/books', booksRoutes);
 app.use('/api/orders', ordersRoutes);
+app.use('/api/wishlist', wishlistRoutes);
 
 // 404 handler
 app.use((req, res) => {

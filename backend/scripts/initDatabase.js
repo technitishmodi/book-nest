@@ -60,6 +60,33 @@ const createTables = async () => {
       )
     `);
 
+    // Wishlist table
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS wishlist (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+        book_id UUID REFERENCES books(id) ON DELETE CASCADE,
+        price_when_added DECIMAL(10, 2),
+        notify_on_price_drop BOOLEAN DEFAULT FALSE,
+        added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(user_id, book_id)
+      )
+    `);
+
+    // Wishlist shares table
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS wishlist_shares (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+        share_code VARCHAR(32) UNIQUE NOT NULL,
+        title VARCHAR(255),
+        description TEXT,
+        is_public BOOLEAN DEFAULT TRUE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        expires_at TIMESTAMP NOT NULL
+      )
+    `);
+
     // Insert sample data
     console.log('Inserting sample data...');
 

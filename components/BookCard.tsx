@@ -1,19 +1,48 @@
-import React from 'react';
-import { StyleSheet, TouchableOpacity, Image, View, Dimensions } from 'react-native';
+import React, { useState } from 'react';
+import { StyleSheet, TouchableOpacity, Image, View, Dimensions, Alert } from 'react-native';
 import { Card, Title, Paragraph, Text, IconButton, Avatar, Chip } from 'react-native-paper';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Book } from '../types';
+import { useWishlist } from '../contexts/WishlistContext';
+import { useAuth } from '../contexts/AuthContext';
 
 const { width } = Dimensions.get('window');
 
 interface BookCardProps {
   book: Book;
   onPress: () => void;
+  style?: any;
 }
 
-const BookCard: React.FC<BookCardProps> = ({ book, onPress }: BookCardProps) => {
+const BookCard: React.FC<BookCardProps> = ({ book, onPress, style }: BookCardProps) => {
+  const [loading, setLoading] = useState(false);
+  const { user } = useAuth();
+  const { isInWishlist, addToWishlist, removeFromWishlist } = useWishlist();
+  
+  const inWishlist = isInWishlist(book.id);
+  const canUseWishlist = user?.role === 'buyer';
+
+  const handleWishlistToggle = async () => {
+    if (!canUseWishlist) {
+      Alert.alert('Info', 'Only buyers can save books to wishlist');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      if (inWishlist) {
+        await removeFromWishlist(book.id);
+      } else {
+        await addToWishlist(book.id);
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to update wishlist');
+    } finally {
+      setLoading(false);
+    }
+  };
   return (
-    <Card style={styles.card} elevation={4}>
+    <Card style={[styles.card, style]} elevation={4}>
       {/* Header with seller info */}
       <View style={styles.header}>
         <View style={styles.sellerInfo}>
@@ -73,10 +102,20 @@ const BookCard: React.FC<BookCardProps> = ({ book, onPress }: BookCardProps) => 
         </Text>
         
         <View style={styles.actionRow}>
-          <TouchableOpacity style={styles.likeButton}>
-            <Text style={styles.likeIcon}>❤️</Text>
-            <Text style={styles.likeText}>Like</Text>
-          </TouchableOpacity>
+          {canUseWishlist && (
+            <TouchableOpacity 
+              style={[styles.likeButton, inWishlist && styles.likeButtonActive]} 
+              onPress={handleWishlistToggle}
+              disabled={loading}
+            >
+              <Text style={[styles.likeIcon, inWishlist && styles.likeIconActive]}>
+                {inWishlist ? '💖' : '🤍'}
+              </Text>
+              <Text style={[styles.likeText, inWishlist && styles.likeTextActive]}>
+                {inWishlist ? 'Saved' : 'Save'}
+              </Text>
+            </TouchableOpacity>
+          )}
           <TouchableOpacity style={styles.shareButton}>
             <Text style={styles.shareIcon}>📤</Text>
             <Text style={styles.shareText}>Share</Text>
@@ -226,6 +265,18 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: '#666666',
+  },
+  likeButtonActive: {
+    backgroundColor: '#FFE8F0',
+    borderWidth: 1,
+    borderColor: '#FF69B4',
+  },
+  likeIconActive: {
+    // No additional styles needed for active icon
+  },
+  likeTextActive: {
+    color: '#FF1493',
+    fontWeight: '700',
   },
   shareButton: {
     flexDirection: 'row',

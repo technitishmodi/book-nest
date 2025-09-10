@@ -7,6 +7,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import BookCard from '../../components/BookCard';
 import { useCart } from '../../contexts/CartContext';
 import { useAuth } from '../../contexts/AuthContext';
+import { useWishlist } from '../../contexts/WishlistContext';
 import { booksAPI } from '../../services/api';
 import { Book, BuyerStackParamList } from '../../types';
 
@@ -20,7 +21,8 @@ const StorefrontScreen: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const navigation = useNavigation<NavigationProp>();
   const { getTotalItems } = useCart();
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
+  const { getTotalItems: getWishlistTotal } = useWishlist();
 
   const handleLogout = async () => {
     try {
@@ -115,6 +117,27 @@ const StorefrontScreen: React.FC = () => {
     navigation.navigate('Cart');
   };
 
+  const handleWishlistPress = () => {
+    console.log('StorefrontScreen: Wishlist button pressed');
+    console.log('StorefrontScreen: User role:', user?.role);
+    console.log('StorefrontScreen: Wishlist total:', getWishlistTotal());
+    console.log('StorefrontScreen: Navigation object:', navigation);
+    
+    // Check if user is a buyer before navigating
+    if (user?.role !== 'buyer') {
+      Alert.alert('Info', 'Only buyers can access the wishlist');
+      return;
+    }
+    
+    try {
+      navigation.navigate('Wishlist');
+      console.log('StorefrontScreen: Navigation to Wishlist initiated');
+    } catch (error) {
+      console.error('StorefrontScreen: Navigation error:', error);
+      Alert.alert('Error', 'Failed to open wishlist. Please try again.');
+    }
+  };
+
   const handleSearch = (query: string) => {
     setSearchQuery(query);
     if (query.trim() === '') {
@@ -147,6 +170,16 @@ const StorefrontScreen: React.FC = () => {
               <Text style={styles.appTitle}>📚 BookNest</Text>
             </View>
             <View style={styles.headerActions}>
+              <View style={styles.cartContainer}>
+                <Appbar.Action
+                  icon="heart"
+                  iconColor="#FFFFFF"
+                  onPress={handleWishlistPress}
+                />
+                {getWishlistTotal() > 0 && (
+                  <Badge style={styles.wishlistBadge}>{getWishlistTotal()}</Badge>
+                )}
+              </View>
               <View style={styles.cartContainer}>
                 <Appbar.Action
                   icon="cart"
@@ -282,6 +315,15 @@ const styles = StyleSheet.create({
     top: 8,
     right: 8,
     backgroundColor: '#FF4757',
+    minWidth: 20,
+    height: 20,
+    borderRadius: 10,
+  },
+  wishlistBadge: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    backgroundColor: '#FF69B4',
     minWidth: 20,
     height: 20,
     borderRadius: 10,
